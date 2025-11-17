@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.3'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.wetech.demo.web3j'
+version = '1.0-SNAPSHOT'
+sourceCompatibility = '21'
+targetCompatibility = '21'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Web3j 核心
+    implementation 'org.web3j:core:4.14.0'
+
+    // Web3j 代码生成器（新增）
+    implementation 'org.web3j:codegen:4.14.0'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// === 自定义：生成合约 Java 包装类的 Gradle 任务 ===
+tasks.register('generateContractWrappers', JavaExec) {
+    group = 'web3j'
+    description = 'Generate Java wrappers from Solidity ABI/BIN using web3j'
+
+    // web3j 代码生成器的入口类
+    mainClass = 'org.web3j.codegen.SolidityFunctionWrapperGenerator'
+
+    // 使用 main 的运行时 classpath（包含 web3j:codegen）
+    classpath = sourceSets.main.runtimeClasspath
+
+    // 这里的路径要和你实际放 ABI/BIN 的路径一致
+    args '-a', "$projectDir/src/main/resources/contracts/ERC20Test.abi",
+            '-b', "$projectDir/src/main/resources/contracts/ERC20Test.bin",
+            '-o', "$projectDir/src/main/java",
+            '-p', 'com.wetech.demo.web3j.contracts'
+}
